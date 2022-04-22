@@ -20,7 +20,7 @@ export class CreateTicketDto {
   @ApiProperty({ type: 'string', example: 'dasd734234-13456-fghtrd-67876' })
   @IsString()
   @IsNotEmpty()
-  attendatIt: string;
+  attendantId: string;
 
   @ApiProperty({
     type: 'string',

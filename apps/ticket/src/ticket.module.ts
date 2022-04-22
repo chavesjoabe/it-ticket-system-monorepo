@@ -1,3 +1,4 @@
+import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -11,6 +12,7 @@ import { TicketService } from './ticket.service';
     ConfigModule.forRoot(),
     MongooseModule.forRoot(process.env.DATABASE_URL),
     MongooseModule.forFeature([{ name: Ticket.name, schema: TicketSchema }]),
+    HttpModule,
   ],
   controllers: [TicketController],
   providers: [TicketService, JwtStrategy],

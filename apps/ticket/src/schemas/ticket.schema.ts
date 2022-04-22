@@ -11,7 +11,7 @@ export class Ticket {
   @Prop()
   status: string;
   @Prop()
-  attendatIt: string;
+  attendantId: string;
   @Prop()
   userId: string;
   @Prop({ default: new Date() })

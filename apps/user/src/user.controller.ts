@@ -31,6 +31,11 @@ export class UserController {
     return this.userService.findByDocument(document);
   }
 
+  @Get('/id/:id')
+  public async findById(@Param('id') id: string) {
+    return this.userService.findOne(id);
+  }
+
   @UseGuards(AuthGuard('jwt'))
   @Post()
   public async create(@Body() createUserDto: CreateUserDto) {
