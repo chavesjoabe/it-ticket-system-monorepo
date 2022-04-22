@@ -6,13 +6,16 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiTags } from '@nestjs/swagger';
 import { CreateUserDto } from './dto/create.user.dto';
 import { UpdateUserDto } from './dto/update.user.dto';
 import { UserService } from './user.service';
 
+@ApiTags('User')
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -35,6 +38,7 @@ export class UserController {
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @Put('/:id')
   @Patch('/:id')
   public async update(
     @Param('id') id: string,

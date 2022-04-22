@@ -6,13 +6,16 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiTags } from '@nestjs/swagger';
 import { CreateTicketDto } from './dto/create.ticket.dto';
 import { UpdateTicketDto } from './dto/update.ticket.dto';
 import { TicketService } from './ticket.service';
 
+@ApiTags('Ticket')
 @UseGuards(AuthGuard('jwt'))
 @Controller('/tickets')
 export class TicketController {
@@ -33,6 +36,7 @@ export class TicketController {
     return this.ticketService.getOne(id);
   }
 
+  @Put('/:id')
   @Patch('/:id')
   public async update(
     @Param('id') id: string,
