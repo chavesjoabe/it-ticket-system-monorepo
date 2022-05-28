@@ -37,8 +37,8 @@ export class TicketService {
     }
   }
 
-  public async getAll() {
-    return this.repository.find();
+  public async getAll(where: any) {
+    return this.repository.find(where);
   }
 
   public async getOne(id: string) {

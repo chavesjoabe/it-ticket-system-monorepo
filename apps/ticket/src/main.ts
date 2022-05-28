@@ -17,6 +17,7 @@ async function bootstrap() {
   SwaggerModule.setup('ticket/swagger/docs', app, document);
 
   app.useGlobalPipes(new ValidationPipe());
+  app.enableCors();
   await app.listen(port, () => {
     Logger.log(`Ticket Api is running on port ${port}`);
   });

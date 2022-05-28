@@ -11,6 +11,14 @@ export class Ticket {
   @Prop()
   status: string;
   @Prop()
+  title: string;
+  @Prop()
+  deviceId: string;
+  @Prop()
+  situation: string;
+  @Prop()
+  comments: string[];
+  @Prop()
   attendantId: string;
   @Prop()
   userId: string;

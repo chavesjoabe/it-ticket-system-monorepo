@@ -11,7 +11,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  public async validateUser(document: string, password: string) {
+  public async validateUser({ document, password }: LoginDto) {
     try {
       const { data: user } = await this.httpService
         .get(`http://localhost:8001/users/${document}`)
@@ -35,10 +35,7 @@ export class AuthService {
   }
 
   public async login(loginDto: LoginDto) {
-    const { document } = loginDto;
-    const { data: user } = await this.httpService
-      .get(`http://localhost:8001/users/${document}`)
-      .toPromise();
+    const user = await this.validateUser(loginDto);
 
     const jwtPayload = {
       sub: user.name,

@@ -7,6 +7,7 @@ import {
   Patch,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -27,8 +28,8 @@ export class TicketController {
   }
 
   @Get()
-  public async getAll() {
-    return this.ticketService.getAll();
+  public async getAll(@Query() where: any) {
+    return this.ticketService.getAll(where);
   }
 
   @Get('/:id')
