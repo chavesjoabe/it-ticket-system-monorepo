@@ -46,7 +46,10 @@ export class UserService {
 
       return this.repository.create(createUserDto);
     } catch (error) {
-      throw new HttpException(`ERRO_ON_CREATE_USER ${error}`, error.statusCode);
+      throw new HttpException(
+        `${errorConstants.ERROR_ON_CREATE_USER} - ${error.message}`,
+        error.statusCode,
+      );
     }
   }
 

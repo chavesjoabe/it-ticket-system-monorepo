@@ -1,7 +1,9 @@
 import { HttpService } from '@nestjs/axios';
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, Inject, Injectable } from '@nestjs/common';
+import { ConfigType } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { authApiConfig } from './config/auth.config';
 import { LoginDto } from './dto/login.dto';
 
 @Injectable()
@@ -9,12 +11,14 @@ export class AuthService {
   constructor(
     private httpService: HttpService,
     private jwtService: JwtService,
+    @Inject(authApiConfig.KEY)
+    private config: ConfigType<typeof authApiConfig>,
   ) {}
 
   public async validateUser({ document, password }: LoginDto) {
     try {
       const { data: user } = await this.httpService
-        .get(`http://localhost:8001/users/${document}`)
+        .get(`${this.config.url.userApiUrl}/${document}`)
         .toPromise();
 
       if (!user) {
