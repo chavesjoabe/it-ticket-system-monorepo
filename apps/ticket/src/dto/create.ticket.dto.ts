@@ -1,6 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsArray, IsNotEmpty, IsString, ValidateIf } from 'class-validator';
 
+export class Comment {
+  loggedUserName: string;
+  comment: string;
+}
+
 export class CreateTicketDto {
   @ApiProperty({ type: 'string', example: 'Example ticket description' })
   @IsString()
@@ -31,7 +36,7 @@ export class CreateTicketDto {
   @ValidateIf((value) => typeof value.comments !== 'undefined')
   @IsArray()
   @IsNotEmpty()
-  comments: string[];
+  comments: Comment[];
 
   @ApiProperty({ type: 'string', example: 'Example deviceId' })
   @IsString()

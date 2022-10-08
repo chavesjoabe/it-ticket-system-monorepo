@@ -3,6 +3,14 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 export type TicketDocument = Ticket & Document;
 
 @Schema()
+class Comment {
+  @Prop()
+  loggedUserName: string;
+  @Prop()
+  comment: string;
+}
+
+@Schema()
 export class Ticket {
   @Prop()
   description: string;
@@ -17,7 +25,7 @@ export class Ticket {
   @Prop()
   situation: string;
   @Prop()
-  comments: string[];
+  comments: Comment[];
   @Prop()
   attendantId: string;
   @Prop()

@@ -1,0 +1,17 @@
+{
+  "configurations": {
+    "run": {
+      "adapter": "vscode-node",
+      "breakpoints": { "exception": { "all": "N", "uncaught": "N" } },
+      "configuration": {
+        "request": "attach",
+        "type": "node",
+        "stopOnEntry": false,
+        "console": "integratedTerminal",
+        "program": "${workspaceFolder}/dist/apps/ticket/main.js",
+        "skipFiles": ["node_modules/*/.js", "<node_internals>/*/.js"],
+        "processId": "${processId}"
+      }
+    }
+  }
+}

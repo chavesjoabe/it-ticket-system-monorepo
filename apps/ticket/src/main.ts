@@ -13,6 +13,7 @@ async function bootstrap() {
     .setDescription('Ticket Api Example')
     .setVersion('1.0')
     .addTag('Ticket')
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, documentConfig);
   SwaggerModule.setup('ticket/swagger/docs', app, document);
