@@ -7,6 +7,8 @@ class Comment {
   @Prop()
   loggedUserName: string;
   @Prop()
+  subject: string;
+  @Prop()
   comment: string;
 }
 

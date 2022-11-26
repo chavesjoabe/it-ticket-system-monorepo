@@ -10,12 +10,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CreateTicketDto } from './dto/create.ticket.dto';
 import {SearchTicketDto} from './dto/search.ticket.dto';
 import { UpdateTicketDto } from './dto/update.ticket.dto';
 import { TicketService } from './ticket.service';
 import { Comment } from './dto/create.ticket.dto';
+import {ResolveTicketDto} from './dto/resolve.ticket.dto';
 
 @ApiTags('Ticket')
 @ApiBearerAuth()
@@ -51,6 +52,11 @@ export class TicketController {
     @Body() updateTicketDto: UpdateTicketDto,
   ) {
     return this.ticketService.update(id, updateTicketDto);
+  }
+
+  @Put('resolve-ticket/:id')
+  public resolveTicket(@Param('id') id: string, @Body() resolveTicketDto: ResolveTicketDto) {
+    return this.ticketService.resolveTicket(id, resolveTicketDto);
   }
 
   @Delete('/:id')

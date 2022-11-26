@@ -1,0 +1,6 @@
+export const TicketStatus = {
+  CANCELED: 'CANCELED',
+  FINISHED: 'FINISHED',
+  IN_PROGRESS: 'IN PROGRESS',
+  WAITING: 'WAITING',
+}

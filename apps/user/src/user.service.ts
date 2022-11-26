@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { Model } from 'mongoose';
@@ -31,9 +31,8 @@ export class UserService {
         createUserDto.document,
       );
       if (userAlreadyExists) {
-        throw new HttpException(
+        throw new BadRequestException(
           errorConstants.USER_ALREADY_EXISTS.message,
-          errorConstants.USER_ALREADY_EXISTS.statusCode,
         );
       }
 
@@ -46,9 +45,8 @@ export class UserService {
 
       return this.repository.create(createUserDto);
     } catch (error) {
-      throw new HttpException(
+      throw new InternalServerErrorException(
         `${errorConstants.ERROR_ON_CREATE_USER} - ${error.message}`,
-        error.statusCode,
       );
     }
   }

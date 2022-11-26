@@ -1,11 +1,11 @@
 import { HttpService } from '@nestjs/axios';
 import {
-  HttpException,
-  HttpStatus,
+  BadRequestException,
   Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
@@ -15,6 +15,7 @@ import { ticketApiConfig } from './config/ticket.config';
 import { ERROR_CONSTANTS } from './constants/error.constants';
 import { USER_TYPES } from './constants/user.types';
 import { Comment, CreateTicketDto } from './dto/create.ticket.dto';
+import { ResolveTicketDto } from './dto/resolve.ticket.dto';
 import { SearchTicketDto } from './dto/search.ticket.dto';
 import { UpdateTicketDto } from './dto/update.ticket.dto';
 import { Ticket, TicketDocument } from './schemas/ticket.schema';
@@ -30,22 +31,14 @@ export class TicketService {
 
   public async create(createTicketDto: CreateTicketDto) {
     try {
-      const { userId, attendantId } = createTicketDto;
-      const [{ data: userRequester }, { data: attendant }] = await Promise.all([
-        lastValueFrom(
-          this.httpService.get(`${this.config.url.userApiUrl}/id/${userId}`),
-        ),
-        lastValueFrom(
-          this.httpService.get(
-            `${this.config.url.userApiUrl}/id/${attendantId}`,
-          ),
-        ),
-      ]);
+      const { userId } = createTicketDto;
+      const { data: userRequester } = await lastValueFrom(
+        this.httpService.get(`${this.config.url.userApiUrl}/id/${userId}`),
+      );
 
-      if (!userRequester || !attendant) {
-        throw new HttpException(
-          'Error on create ticket - users not found',
-          HttpStatus.BAD_REQUEST,
+      if (!userRequester) {
+        throw new BadRequestException(
+          ERROR_CONSTANTS.USER_NOT_FOUND_ON_CREATE_TICKET,
         );
       }
 
@@ -56,7 +49,22 @@ export class TicketService {
   }
 
   public async getAll(where: any) {
-    return this.repository.find(where);
+    const { loggedUserDocument } = where;
+    try {
+      const { data: user } = await lastValueFrom(
+        this.httpService.get(
+          `${this.config.url.userApiUrl}/${loggedUserDocument}`,
+        ),
+      );
+
+      if (user.type === USER_TYPES.ATTENDANT) {
+        where = {};
+      }
+
+      return this.repository.find(where);
+    } catch (error) {
+      throw new UnprocessableEntityException();
+    }
   }
 
   public async findOne(id: string, query: SearchTicketDto) {
@@ -73,7 +81,7 @@ export class TicketService {
       ),
     );
 
-    const isAttendant = user.type == USER_TYPES.ATTENDANT.toString();
+    const isAttendant = user.type == USER_TYPES.ATTENDANT
     if (isAttendant) {
       return ticket;
     }
@@ -88,16 +96,33 @@ export class TicketService {
   }
 
   public async insertComment(id: string, comment: Comment) {
-    const ticket = await this.repository.findById(id);
-
+    const ticket = await this.repository.findById(id).lean();
     if (!ticket) {
       throw new NotFoundException();
     }
     const newComments: Comment[] = ticket.comments ?? [];
-
     newComments.push(comment);
+    return this.repository.updateOne({ _id: id }, { comments: newComments });
+  }
 
-    return this.update(id, { comments: newComments });
+  public async resolveTicket(id: string, resolveTicketDto: ResolveTicketDto) {
+    const { loggedUserDocument } = resolveTicketDto;
+    const { data: user } = await lastValueFrom(
+      this.httpService.get(
+        `${this.config.url.userApiUrl}/${loggedUserDocument}`,
+      ),
+    );
+
+    const isAttendant = user.type == USER_TYPES.ATTENDANT;
+    if (!isAttendant) {
+      throw new UnauthorizedException(
+        ERROR_CONSTANTS.THIS_USER_HAS_NO_PERMISSION_TO_PERFORM_THIS_ACTION,
+      );
+    }
+
+    const updatePayload = { status: resolveTicketDto.status };
+
+    return this.repository.updateOne({ _id: id }, updatePayload);
   }
 
   public async delete(id: string) {
