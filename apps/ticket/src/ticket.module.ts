@@ -1,5 +1,5 @@
 import { HttpModule } from '@nestjs/axios';
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { Logger, MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ticketApiConfig } from './config/ticket.config';
@@ -20,7 +20,7 @@ import { TicketService } from './ticket.service';
     HttpModule,
   ],
   controllers: [TicketController],
-  providers: [TicketService, JwtStrategy],
+  providers: [TicketService, JwtStrategy, Logger],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

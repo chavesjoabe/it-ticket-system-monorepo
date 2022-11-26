@@ -3,6 +3,8 @@ import {
   BadRequestException,
   Inject,
   Injectable,
+  InternalServerErrorException,
+  Logger,
   NotFoundException,
   UnauthorizedException,
   UnprocessableEntityException,
@@ -27,6 +29,7 @@ export class TicketService {
     private httpService: HttpService,
     @Inject(ticketApiConfig.KEY)
     private config: ConfigType<typeof ticketApiConfig>,
+    private logger: Logger,
   ) {}
 
   public async create(createTicketDto: CreateTicketDto) {
@@ -37,6 +40,7 @@ export class TicketService {
       );
 
       if (!userRequester) {
+        this.logger.error(ERROR_CONSTANTS.USER_NOT_FOUND_ON_CREATE_TICKET);
         throw new BadRequestException(
           ERROR_CONSTANTS.USER_NOT_FOUND_ON_CREATE_TICKET,
         );
@@ -44,7 +48,10 @@ export class TicketService {
 
       return this.repository.create(createTicketDto);
     } catch (error) {
-      throw new Error(error);
+      this.logger.error(
+        `${ERROR_CONSTANTS.ERROR_ON_CREATE_TICKET} - ${error.message}`,
+      );
+      throw new InternalServerErrorException(error.message);
     }
   }
 
@@ -72,6 +79,7 @@ export class TicketService {
 
     const ticket = await this.repository.findById(id);
     if (!ticket) {
+      this.logger.error(ERROR_CONSTANTS.TICKET_NOT_FOUND);
       throw new NotFoundException();
     }
 
@@ -81,11 +89,12 @@ export class TicketService {
       ),
     );
 
-    const isAttendant = user.type == USER_TYPES.ATTENDANT
+    const isAttendant = user.type == USER_TYPES.ATTENDANT;
     if (isAttendant) {
       return ticket;
     }
     if (ticket.userId !== user._id) {
+      this.logger.error(ERROR_CONSTANTS.NON_AUTHORIZED(user._id));
       throw new UnauthorizedException(ERROR_CONSTANTS.NON_AUTHORIZED(user._id));
     }
     return ticket;
@@ -96,33 +105,49 @@ export class TicketService {
   }
 
   public async insertComment(id: string, comment: Comment) {
-    const ticket = await this.repository.findById(id).lean();
-    if (!ticket) {
-      throw new NotFoundException();
+    try {
+      const ticket = await this.repository.findById(id).lean();
+      if (!ticket) {
+        this.logger.error(ERROR_CONSTANTS.TICKET_NOT_FOUND);
+        throw new NotFoundException();
+      }
+      const newComments: Comment[] = ticket.comments ?? [];
+      newComments.push(comment);
+      return this.repository.updateOne({ _id: id }, { comments: newComments });
+    } catch (error) {
+      this.logger.log(
+        `${ERROR_CONSTANTS.ERROR_ON_INSERT_COMMENT} - ${error.message}`,
+      );
+      throw new InternalServerErrorException();
     }
-    const newComments: Comment[] = ticket.comments ?? [];
-    newComments.push(comment);
-    return this.repository.updateOne({ _id: id }, { comments: newComments });
   }
 
   public async resolveTicket(id: string, resolveTicketDto: ResolveTicketDto) {
-    const { loggedUserDocument } = resolveTicketDto;
-    const { data: user } = await lastValueFrom(
-      this.httpService.get(
-        `${this.config.url.userApiUrl}/${loggedUserDocument}`,
-      ),
-    );
-
-    const isAttendant = user.type == USER_TYPES.ATTENDANT;
-    if (!isAttendant) {
-      throw new UnauthorizedException(
-        ERROR_CONSTANTS.THIS_USER_HAS_NO_PERMISSION_TO_PERFORM_THIS_ACTION,
+    try {
+      const { loggedUserDocument } = resolveTicketDto;
+      const { data: user } = await lastValueFrom(
+        this.httpService.get(
+          `${this.config.url.userApiUrl}/${loggedUserDocument}`,
+        ),
       );
+
+      const isAttendant = user.type == USER_TYPES.ATTENDANT;
+      if (!isAttendant) {
+        this.logger.log(
+          ERROR_CONSTANTS.THIS_USER_HAS_NO_PERMISSION_TO_PERFORM_THIS_ACTION,
+        );
+        throw new UnauthorizedException(
+          ERROR_CONSTANTS.THIS_USER_HAS_NO_PERMISSION_TO_PERFORM_THIS_ACTION,
+        );
+      }
+
+      const updatePayload = { status: resolveTicketDto.status };
+
+      return this.repository.updateOne({ _id: id }, updatePayload);
+    } catch (error) {
+      this.logger.error(error.message);
+      throw new InternalServerErrorException(error.message);
     }
-
-    const updatePayload = { status: resolveTicketDto.status };
-
-    return this.repository.updateOne({ _id: id }, updatePayload);
   }
 
   public async delete(id: string) {

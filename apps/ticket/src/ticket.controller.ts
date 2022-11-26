@@ -40,7 +40,6 @@ export class TicketController {
     return this.ticketService.getAll(where);
   }
 
-
   @Get('/:id')
   public async findOne(@Param('id') id: string, @Query() query: SearchTicketDto) {
     return this.ticketService.findOne(id, query);

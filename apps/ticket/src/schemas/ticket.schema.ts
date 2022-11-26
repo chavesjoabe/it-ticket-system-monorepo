@@ -14,6 +14,8 @@ class Comment {
 
 @Schema()
 export class Ticket {
+  @Prop({ default: `${Date.now()}` })
+  id: string;
   @Prop()
   description: string;
   @Prop()
