@@ -7,23 +7,27 @@ import {
   Patch,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { CreateUserDto } from './dto/create.user.dto';
+import {SearchUserDto} from './dto/search.user.dto';
 import { UpdateUserDto } from './dto/update.user.dto';
 import { UserService } from './user.service';
 
+@ApiBearerAuth()
 @ApiTags('User')
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @UseGuards(AuthGuard('jwt'))
+  @ApiQuery({name: 'type', type: 'string'})
   @Get()
-  public async findAll() {
-    return this.userService.findAll();
+  public async findAll(@Query() where: SearchUserDto) {
+    return this.userService.findAll(where);
   }
 
   @Get('/:document')

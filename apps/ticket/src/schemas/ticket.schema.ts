@@ -1,9 +1,12 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { randomUUID } from 'crypto'
 
 export type TicketDocument = Ticket & Document;
 
 @Schema()
 class Comment {
+  @Prop({default: randomUUID() })
+  id: string;
   @Prop()
   loggedUserName: string;
   @Prop()

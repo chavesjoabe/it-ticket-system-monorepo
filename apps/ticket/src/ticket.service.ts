@@ -15,6 +15,7 @@ import { Model } from 'mongoose';
 import { lastValueFrom } from 'rxjs';
 import { ticketApiConfig } from './config/ticket.config';
 import { ERROR_CONSTANTS } from './constants/error.constants';
+import {TicketStatus} from './constants/ticket.status';
 import { USER_TYPES } from './constants/user.types';
 import { Comment, CreateTicketDto } from './dto/create.ticket.dto';
 import { ResolveTicketDto } from './dto/resolve.ticket.dto';
@@ -64,11 +65,12 @@ export class TicketService {
         ),
       );
 
-      if (user.type === USER_TYPES.ATTENDANT) {
+      const canViewAllTickets = [USER_TYPES.ATTENDANT, USER_TYPES.ADMIN];
+      if (canViewAllTickets.includes(user.type)) {
         where = {};
       }
 
-      return this.repository.find(where);
+      return this.repository.find(where).sort({ createdAt: -1 });
     } catch (error) {
       throw new UnprocessableEntityException();
     }
@@ -89,7 +91,8 @@ export class TicketService {
       ),
     );
 
-    const isAttendant = user.type == USER_TYPES.ATTENDANT;
+    const canViewAllTickets = [USER_TYPES.ATTENDANT, USER_TYPES.ADMIN];
+    const isAttendant = canViewAllTickets.includes(user.type);
     if (isAttendant) {
       return ticket;
     }
@@ -101,7 +104,10 @@ export class TicketService {
   }
 
   public async update(id: string, updateTicketDto: UpdateTicketDto) {
-    return this.repository.updateOne({ id }, updateTicketDto);
+    if(updateTicketDto.attendantId) {
+      updateTicketDto.status = TicketStatus.IN_PROGRESS;
+    }
+    return this.repository.updateOne({ _id: id }, updateTicketDto);
   }
 
   public async insertComment(id: string, comment: Comment) {
@@ -120,6 +126,15 @@ export class TicketService {
       );
       throw new InternalServerErrorException();
     }
+  }
+
+  public async removeComment(commentId: string, ticketId: string) {
+    const ticket = await this.repository.findById(ticketId).lean();
+    const { comments } = ticket;
+    const commentIndex = comments.findIndex((item) => item.id === commentId);
+
+    comments.splice(commentIndex, 1);
+    return `comment ${commentId} of ticket ${ticketId} has been deleted`;
   }
 
   public async resolveTicket(id: string, resolveTicketDto: ResolveTicketDto) {

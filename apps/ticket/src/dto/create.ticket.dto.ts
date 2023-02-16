@@ -1,10 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsArray, IsIn, IsNotEmpty, IsString, ValidateIf } from 'class-validator';
+import { IsArray, IsIn, IsNotEmpty, IsOptional, IsString, ValidateIf } from 'class-validator';
 import {TicketStatus} from '../constants/ticket.status';
 
 export class Comment {
+  @IsString()
   loggedUserName: string;
+  @IsString()
   subject: string;
+  @IsString()
   comment: string;
 }
 
@@ -48,8 +51,8 @@ export class CreateTicketDto {
 
   @ApiProperty({ type: 'string', example: 'dasd734234-13456-fghtrd-67876' })
   @IsString()
-  @IsNotEmpty()
-  attendantId: string;
+  @IsOptional()
+  attendantId?: string;
 
   @ApiProperty({
     type: 'string',
