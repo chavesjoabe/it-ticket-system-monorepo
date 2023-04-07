@@ -15,7 +15,7 @@ import { Model } from 'mongoose';
 import { lastValueFrom } from 'rxjs';
 import { ticketApiConfig } from './config/ticket.config';
 import { ERROR_CONSTANTS } from './constants/error.constants';
-import {TicketStatus} from './constants/ticket.status';
+import { TicketStatus } from './constants/ticket.status';
 import { USER_TYPES } from './constants/user.types';
 import { Comment, CreateTicketDto } from './dto/create.ticket.dto';
 import { ResolveTicketDto } from './dto/resolve.ticket.dto';
@@ -104,7 +104,10 @@ export class TicketService {
   }
 
   public async update(id: string, updateTicketDto: UpdateTicketDto) {
-    if(updateTicketDto.attendantId) {
+    if (
+      updateTicketDto.attendantId &&
+      updateTicketDto.status === TicketStatus.WAITING
+    ) {
       updateTicketDto.status = TicketStatus.IN_PROGRESS;
     }
     return this.repository.updateOne({ _id: id }, updateTicketDto);
@@ -117,9 +120,10 @@ export class TicketService {
         this.logger.error(ERROR_CONSTANTS.TICKET_NOT_FOUND);
         throw new NotFoundException();
       }
-      const newComments: Comment[] = ticket.comments ?? [];
-      newComments.push(comment);
-      return this.repository.updateOne({ _id: id }, { comments: newComments });
+      return this.repository.updateOne(
+        { _id: id },
+        { $push: { comments: comment } },
+      );
     } catch (error) {
       this.logger.log(
         `${ERROR_CONSTANTS.ERROR_ON_INSERT_COMMENT} - ${error.message}`,
