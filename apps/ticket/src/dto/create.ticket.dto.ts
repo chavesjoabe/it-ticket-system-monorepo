@@ -5,10 +5,16 @@ import {TicketStatus} from '../constants/ticket.status';
 export class Comment {
   @IsString()
   loggedUserName: string;
+  
   @IsString()
   subject: string;
+  
   @IsString()
   comment: string;
+
+  @IsString()
+  @IsOptional()
+  id: string;
 }
 
 export class CreateTicketDto {

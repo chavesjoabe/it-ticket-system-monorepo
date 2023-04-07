@@ -5,7 +5,7 @@ export type TicketDocument = Ticket & Document;
 
 @Schema()
 class Comment {
-  @Prop({default: randomUUID() })
+  @Prop()
   id: string;
   @Prop()
   loggedUserName: string;

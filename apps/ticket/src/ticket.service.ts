@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
+import {randomUUID} from 'crypto';
 import { Model } from 'mongoose';
 import { lastValueFrom } from 'rxjs';
 import { ticketApiConfig } from './config/ticket.config';
@@ -120,6 +121,7 @@ export class TicketService {
         this.logger.error(ERROR_CONSTANTS.TICKET_NOT_FOUND);
         throw new NotFoundException();
       }
+      comment.id = randomUUID();
       return this.repository.updateOne(
         { _id: id },
         { $push: { comments: comment } },
@@ -132,13 +134,17 @@ export class TicketService {
     }
   }
 
-  public async removeComment(commentId: string, ticketId: string) {
+  public async removeComment(ticketId: string, commentId: string) {
     const ticket = await this.repository.findById(ticketId).lean();
-    const { comments } = ticket;
-    const commentIndex = comments.findIndex((item) => item.id === commentId);
-
-    comments.splice(commentIndex, 1);
-    return `comment ${commentId} of ticket ${ticketId} has been deleted`;
+    if (!ticket) {
+      throw new NotFoundException(ERROR_CONSTANTS.TICKET_NOT_FOUND);
+    }
+    this.logger.log(`removing comment from ticket ${commentId}`);
+    await this.repository.updateOne(
+      { _id: ticketId },
+      { $pull: { comments: { id: commentId } } },
+    );
+    return `comment ${commentId} from ticket ${ticketId} has been removed`;
   }
 
   public async resolveTicket(id: string, resolveTicketDto: ResolveTicketDto) {

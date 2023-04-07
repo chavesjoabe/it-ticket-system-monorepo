@@ -35,6 +35,11 @@ export class TicketController {
     return this.ticketService.insertComment(id, comment)
   };
 
+  @Delete('remove-comment/:ticketId/:commentId')
+  public removeComment(@Param('ticketId') ticketId: string, @Param('commentId') commentId: string)  {
+    return this.ticketService.removeComment(ticketId, commentId);
+  }
+
   @Get()
   public async getAll(@Query() where: any) {
     return this.ticketService.getAll(where);
